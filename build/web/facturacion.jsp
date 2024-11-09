@@ -31,7 +31,7 @@
                 </thead>
     </table>
     
-    <div class="container">
+    <div class="container-sm d-flex align-items-center justify-content-center">
         <%
             String codigo = request.getParameter("txtcodigoProducto");
             int compra = Integer.parseInt(request.getParameter("txtcantidadCompra"));
@@ -39,53 +39,66 @@
             Connection cnx = null;
             Statement sta = null;
             ResultSet rs0 = null;
+            Boolean compraValida = false;
             
             try {
                 Class.forName("com.mysql.cj.jdbc.Driver");
                 cnx = DriverManager.getConnection("jdbc:mysql://localhost/ExamenFinal?user=root&password=");
                 sta = cnx.createStatement();
-       
-             
-
+               
                 rs0= sta.executeQuery("SELECT * FROM productos WHERE codigoProducto='" + codigo + "'");
 
                 if (rs0.next()) {
                     String cantidadt = rs0.getString(4);
                     int cantidadTotal = Integer.parseInt(cantidadt);
-                    int nuevaCantidad = cantidadTotal - compra;
-
-                    sta.executeUpdate("update productos set cantidadProducto='"+nuevaCantidad+"' WHERE codigoProducto='"+codigo+"'");
-                } else {
-                    out.println("Producto no encontrado.");
-                }
-                
-                
-                String query = "SELECT nombreProducto, precioProducto FROM productos WHERE codigoProducto=?";
-                PreparedStatement ps = cnx.prepareStatement(query);
-                ps.setString(1, codigo);
-                ResultSet rs = ps.executeQuery();
-
-                if (rs.next()) {
-                    String nombreProducto = rs.getString("nombreProducto");
-                    int precioProducto = rs.getInt("precioProducto");
-                    double totalVenta = precioProducto * compra;
+                    
+                    if (compra > cantidadTotal) {
         %>
-        <div class="card" style="width: 20rem;">
-            <div class="card-body">
-                <h2 class="card-title" style="text-align: center;">Factura</h2>
-                <p class="card-text" >Producto: <%= nombreProducto %></p>
-                <p class="card-text" >Cantidad Vendida: <%= compra %></p>
-                <p class="card-text" >Precio Unitario: <%= precioProducto %></p>
-                <p class="card-text" >Total a Pagar: Q.<%= totalVenta %></p>
-            </div>
-        </div>
-        <%  
+                    <div class="alert alert-danger" role="alert">
+                        Cantidad de productos disponibles insuficiente.
+                    </div>
+        <%
+                    } else {
+                        compraValida = true;
+                        int nuevaCantidad = cantidadTotal - compra;
+                        sta.executeUpdate("update productos set cantidadProducto='"+nuevaCantidad+"' WHERE codigoProducto='"+codigo+"'");
+                    }
+                    
+                  
                 } else {
                     out.println("Producto no encontrado.");
                 }
-                rs.close();
-                ps.close();
-                cnx.close();
+
+                if (compraValida == true) {
+                    String query = "SELECT nombreProducto, precioProducto FROM productos WHERE codigoProducto=?";
+                    PreparedStatement ps = cnx.prepareStatement(query);
+                    ps.setString(1, codigo);
+                    ResultSet rs = ps.executeQuery();
+
+                    if (rs.next()) {
+                        String nombreProducto = rs.getString("nombreProducto");
+                        int precioProducto = rs.getInt("precioProducto");
+                        double totalVenta = precioProducto * compra;
+        %>
+                        <div class="card" style="width: 20rem;">
+                            <div class="card-body">
+                                <h2 class="card-title" style="text-align: center;">Factura</h2>
+                                <p class="card-text" >Producto: <%= nombreProducto %></p>
+                                <p class="card-text" >Cantidad Vendida: <%= compra %></p>
+                                <p class="card-text" >Precio Unitario: <%= precioProducto %></p>
+                                <p class="card-text" >Total a Pagar: Q.<%= totalVenta %></p>
+                            </div>
+                        </div>
+        <%  
+                    } else {
+                        out.println("Producto no encontrado.");
+                    }
+
+                    rs.close();
+                    ps.close();
+                    cnx.close();
+                }
+                
             } catch (Exception e) {
                 out.println("Error: " + e.getMessage());
             }
