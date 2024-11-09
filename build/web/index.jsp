@@ -17,17 +17,6 @@
         <div class="container text-center">
             <!--Tabla-->
             <table class="table table-borderless" style="margin-top: 20px;">
-                <%
-                    //Inicializar driver
-                    Connection cnx = null;
-                    Statement sta = null;
-                    try{
-                        Class.forName("com.mysql.jdbc.Driver");
-                        cnx = DriverManager.getConnection(
-                                "jdbc:mysql://localhost/ExamenFinal?user=root&password=");
-                        sta = cnx.createStatement();
-                    } catch (Exception e){}  
-                %>
                 <thead>
                     <th>
                         <h1 style="color: gray;">Menú Principal</h1>
